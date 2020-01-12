@@ -31,19 +31,19 @@ namespace NBPWaluty
 
                     List<string> xmlFileNames = new List<string>();
 
-                    //if(to.Year - from.Year != 0) // they are multiple years with range
-                    //{
                     WebClient wb = new WebClient();
                     for (int i = 0; i < Math.Abs(to.Year - from.Year) + 1; ++i)
                     {
                         xmlFileNames.AddRange(wb.DownloadString($"http://www.nbp.pl/kursy/xml/dir{from.Year + i}.txt").Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries));
                     }
-                    // }
+
+                    // We need to find closest date :D
+
+                   var convertedDate =  from.ToString("yyMMdd");
+
+                    var findedIndex = xmlFileNames.FindIndex(fileName => fileName.Substring(fileName.Length - 7, fileName.Length - 1) == convertedDate);
 
                     var dbg = 0;
-
-
-
 
                 }
             }
