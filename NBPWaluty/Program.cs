@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -9,6 +10,23 @@ namespace NBPWaluty
 {
     class Program
     {
+
+        static int FindClosestPublishDate(List<string> fileNames, DateTime time, bool endDate)
+        {
+            int closestIndex = -1;
+
+            while (closestIndex == -1)
+            {
+                closestIndex = fileNames.FindIndex(name => name.Substring(name.Length - 6) == time.ToString("yyMMdd"));
+                if (closestIndex == -1)
+                    if (!endDate)
+                        time = time.AddDays(1);
+                    else
+                        time = time.AddDays(-1);
+            }
+            return closestIndex;
+        }
+
         static void Main(string[] args)
         {
             // TODO: We need to check user unput
@@ -34,14 +52,18 @@ namespace NBPWaluty
                     WebClient wb = new WebClient();
                     for (int i = 0; i < Math.Abs(to.Year - from.Year) + 1; ++i)
                     {
-                        xmlFileNames.AddRange(wb.DownloadString($"http://www.nbp.pl/kursy/xml/dir{from.Year + i}.txt").Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries));
+                        xmlFileNames.AddRange(wb.DownloadString($"http://www.nbp.pl/kursy/xml/dir{from.Year + i}.txt").Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries).Where( e => e[0] == 'c'));
                     }
 
                     // We need to find closest date :D
 
-                   var convertedDate =  from.ToString("yyMMdd");
+                    var indexFrom = FindClosestPublishDate(xmlFileNames, from, false);
+                    var indexTo = FindClosestPublishDate(xmlFileNames, to, true);
 
-                    var findedIndex = xmlFileNames.FindIndex(fileName => fileName.Substring(fileName.Length - 7, fileName.Length - 1) == convertedDate);
+                    
+
+
+
 
                     var dbg = 0;
 
