@@ -28,6 +28,12 @@ namespace NBPWaluty
             return closestIndex;
         }
 
+        static DateTime CreateDateTimeFromString(string date)
+        {
+            var splited = date.Split('-');
+            return new DateTime(int.Parse(splited[0]), int.Parse(splited[1]), int.Parse(splited[2]));
+        }
+
         static void Main(string[] args)
         {
             // TODO: We need to check user unput
@@ -74,60 +80,44 @@ namespace NBPWaluty
                     indciesTo[0] = indciesTo[1] - 1 < 0 ? -1 : indciesTo[1] - 1;
                     indciesTo[2] = indciesTo[1] + 1 >= xmlFileNames.Count ? -1 : indciesTo[1] + 1;
 
-                    //int properIndexFrom = -1;
-
-
-
                     List<Tuple<int, DateTime>> listOfNotesFrom = new List<Tuple<int, DateTime>>();
                     List<Tuple<int, DateTime>> listOfNotesTo = new List<Tuple<int, DateTime>>();
                     for(int i = 0; i < 3; ++i)
                     {
-                        XmlDocument temp = new XmlDocument();
-                        temp.LoadXml(wb.DownloadString($"http://www.nbp.pl/kursy/xml/{xmlFileNames[indciesFrom[i]]}.xml"));
+                        if (indciesFrom[i] != -1)
+                        {
+                            XmlDocument temp = new XmlDocument();
+                            temp.LoadXml(wb.DownloadString($"http://www.nbp.pl/kursy/xml/{xmlFileNames[indciesFrom[i]]}.xml"));
 
-                        var dataNotowania = DateTime.Parse(temp.GetElementsByTagName("data_notowania")[0].InnerText);
-                        // TODO: Jeśli data notowania jest równa dacie brzegowej, to nie szukamy dalej, w sensie, że nie potrzebnie przeglądamy zakładane wybory xD od razu
-                        listOfNotesFrom.Add(Tuple.Create(indciesFrom[i], dataNotowania));
-                        
-
+                            var dataNotowania = CreateDateTimeFromString(temp.GetElementsByTagName("data_notowania")[0].InnerText);
+                            // TODO: Jeśli data notowania jest równa dacie brzegowej, to nie szukamy dalej, w sensie, że nie potrzebnie przeglądamy zakładane wybory xD od razu
+                            listOfNotesFrom.Add(Tuple.Create(indciesFrom[i], dataNotowania));
+                        }
                     }
+
                     for (int i = 0; i < 3; ++i)
                     {
-                        XmlDocument temp = new XmlDocument();
-                        temp.LoadXml(wb.DownloadString($"http://www.nbp.pl/kursy/xml/{xmlFileNames[indciesTo[i]]}.xml"));
+                        if (indciesTo[i] != -1)
+                        {
+                            XmlDocument temp = new XmlDocument();
+                            temp.LoadXml(wb.DownloadString($"http://www.nbp.pl/kursy/xml/{xmlFileNames[indciesTo[i]]}.xml"));
 
-                        var dataNotowania = DateTime.Parse(temp.GetElementsByTagName("data_notowania")[0].InnerText);
-                        // TODO: Jeśli data notowania jest równa dacie brzegowej, to nie szukamy dalej, w sensie, że nie potrzebnie przeglądamy zakładane wybory xD od razu
-                        listOfNotesTo.Add(Tuple.Create(indciesTo[i], dataNotowania));
-
-
+                            var dataNotowania = DateTime.Parse(temp.GetElementsByTagName("data_notowania")[0].InnerText);
+                            // TODO: Jeśli data notowania jest równa dacie brzegowej, to nie szukamy dalej, w sensie, że nie potrzebnie przeglądamy zakładane wybory xD od razu
+                            listOfNotesTo.Add(Tuple.Create(indciesTo[i], dataNotowania));
+                        }
                     }
 
-
-
-                    var test = listOfNotesFrom[0].Item2.DayOfYear - from.DayOfYear;
-                    var test1 = listOfNotesFrom[1].Item2 - from;
-                    var test2 = listOfNotesFrom[2].Item2 - from;
-
                     var bestFitFromIndex = listOfNotesFrom.Where(elem => elem.Item2 >= from).OrderBy(elem => Math.Abs(elem.Item2.DayOfYear - from.DayOfYear)).First().Item1;
-
-
-
-
                     var bestFitToIndex = listOfNotesTo.Where(elem => elem.Item2 <= to).OrderBy(elem => Math.Abs(elem.Item2.DayOfYear - to.DayOfYear)).First().Item1;
 
-
-                    //var range = bestFitToIndex - bestFitFromIndex;
-
                     List<Tuple<DateTime, double, double>> notesInRangeBuySell = new List<Tuple<DateTime, double, double>>();
-                    //List<string> notesInRangeSell = new List<string>();
-
+     
+                    string selectedWaluta = "";
                    for(int i = bestFitFromIndex; i <= bestFitToIndex; ++i)
                    {
                         XmlDocument temp = new XmlDocument();
                         temp.LoadXml(wb.DownloadString($"http://www.nbp.pl/kursy/xml/{xmlFileNames[i]}.xml"));
-
-                        //var nodesTest = temp.GetElementsByTagName("pozycja");
                         XmlNodeList nodesTest2 = temp.GetElementsByTagName("kod_waluty");
 
 
@@ -135,7 +125,8 @@ namespace NBPWaluty
                         {
                             if(item.InnerText == args[0])
                             {
-                                var dataNotowania = DateTime.Parse(temp.GetElementsByTagName("data_notowania")[0].InnerText);
+                                var dataNotowania = CreateDateTimeFromString(temp.GetElementsByTagName("data_notowania")[0].InnerText);
+                                selectedWaluta = item.PreviousSibling.PreviousSibling.InnerText;
                                 notesInRangeBuySell.Add(Tuple.Create(dataNotowania, double.Parse(item.NextSibling.InnerText), double.Parse(item.NextSibling.NextSibling.InnerText)));
                             }
                         }
@@ -143,12 +134,38 @@ namespace NBPWaluty
 
 
 
+                    var averageBuy = notesInRangeBuySell.Average(elem => elem.Item2);
+                    var averageSell = notesInRangeBuySell.Average(elem => elem.Item3);
 
 
-                   
+                    var miniminBuy = notesInRangeBuySell.Min(elem => elem.Item2);
+                    var maximumBuy = notesInRangeBuySell.Max(elem => elem.Item2);
+                    var miniminSell = notesInRangeBuySell.Min(elem => elem.Item3);
+                    var maximumSell = notesInRangeBuySell.Max(elem => elem.Item3);
 
-                    var dbg = 0;
+                    var standardDeviationBuy = notesInRangeBuySell.Select(elem => Math.Pow(elem.Item2 - averageBuy, 2)).Sum() / notesInRangeBuySell.Count;
+                    var standardDeviationSell = notesInRangeBuySell.Select(elem => Math.Pow(elem.Item3 - averageSell, 2)).Sum() / notesInRangeBuySell.Count;
 
+                    var bigestDifference = notesInRangeBuySell.OrderBy(elem => Math.Abs(elem.Item2 - elem.Item3)).Last();
+
+
+
+                    Console.WriteLine($"Wybrana waluta to: {selectedWaluta} ({args[0]})");
+                    Console.WriteLine("----Podstawowe statystyki dla kursu kupna----");
+                    Console.WriteLine($"Kurs średni: {averageBuy}");
+                    Console.WriteLine($"Odchylenie standardowe: {standardDeviationBuy}");
+                    Console.WriteLine($"Kurs minimalny: {miniminBuy}");
+                    Console.WriteLine($"Kurs maksymalny: {maximumBuy}");
+
+                    Console.WriteLine("----Podstawowe statystyki dla kursu sprzedaży----");
+                    Console.WriteLine($"Kurs średni: {averageSell}");
+                    Console.WriteLine($"Odchylenie standardowe: {standardDeviationSell}");
+                    Console.WriteLine($"Kurs minimalny: {miniminSell}");
+                    Console.WriteLine($"Kurs maksymalny: {maximumSell}");
+
+                    Console.WriteLine($"Największa różnica kursowa wynosiła {Math.Abs(bigestDifference.Item3 - bigestDifference.Item2)} z dnia {bigestDifference.Item1.ToString("dd.MM.yy")}");
+
+                    Console.ReadLine();
                 }
             }
 
@@ -156,7 +173,7 @@ namespace NBPWaluty
 
             // TODO: It is error
 
-
+            var dbg = 0;
 
             //WebClient wc = new WebClient();
 
