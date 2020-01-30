@@ -1,183 +1,165 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using CurrencyValueNBP;
+using System;
+using System.IO;
 using System.Linq;
-using System.Net;
 using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
+
 
 namespace NBPWaluty
 {
     class Program
     {
-
-        static int FindClosestPublishDate(List<string> fileNames, DateTime time, bool endDate)
-        {
-            int closestIndex = -1;
-
-            while (closestIndex == -1)
-            {
-                closestIndex = fileNames.FindIndex(name => name.Substring(name.Length - 6) == time.ToString("yyMMdd"));
-                if (closestIndex == -1)
-                    if (!endDate)
-                        time = time.AddDays(1);
-                    else
-                        time = time.AddDays(-1);
-            }
-            return closestIndex;
-        }
-
-        static DateTime CreateDateTimeFromString(string date)
-        {
-            var splited = date.Split('-');
-            return new DateTime(int.Parse(splited[0]), int.Parse(splited[1]), int.Parse(splited[2]));
-        }
-
         static void Main(string[] args)
         {
             // TODO: We need to check user unput
-
-
-            if (DateTime.TryParse(args[1], out DateTime from))
+            if (args.Length == 3)
             {
-                if (DateTime.TryParse(args[2], out DateTime to))
+                string currencyCode = args[0].ToUpper();
+                if (DateTime.TryParse(args[1], out DateTime from))
                 {
-                    if (from > to) // if user reverse period points
+                    if (DateTime.TryParse(args[2], out DateTime to))
                     {
-                        var t = from;
-                        from = to;
-                        to = t;
-                    }
-
-                    // We need to download text files with xml names
-
-                    // Check if range is in one year, if not we need to download multiple dir files
-
-                    List<string> xmlFileNames = new List<string>();
-
-                    WebClient wb = new WebClient();
-                    for (int i = 0; i < Math.Abs(to.Year - from.Year) + 1; ++i)
-                    {
-                        xmlFileNames.AddRange(wb.DownloadString($"http://www.nbp.pl/kursy/xml/dir{from.Year + i}.txt").Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries).Where( e => e[0] == 'c'));
-                    }
-
-                    // We need to find closest date :D
-
-
-                    int[] indciesFrom = new int[3];
-                    int[] indciesTo = new int[3];
-
-
-
-                    indciesFrom[1] = FindClosestPublishDate(xmlFileNames, from, false);
-                    indciesTo[1]= FindClosestPublishDate(xmlFileNames, to, true);
-
-
-                    indciesFrom[0] = indciesFrom[1] - 1 < 0 ? -1 : indciesFrom[1] - 1;
-                    indciesFrom[2] = indciesFrom[1] + 1 >= xmlFileNames.Count ? -1 : indciesFrom[1] + 1;
-                    
-                    indciesTo[0] = indciesTo[1] - 1 < 0 ? -1 : indciesTo[1] - 1;
-                    indciesTo[2] = indciesTo[1] + 1 >= xmlFileNames.Count ? -1 : indciesTo[1] + 1;
-
-                    List<Tuple<int, DateTime>> listOfNotesFrom = new List<Tuple<int, DateTime>>();
-                    List<Tuple<int, DateTime>> listOfNotesTo = new List<Tuple<int, DateTime>>();
-                    for(int i = 0; i < 3; ++i)
-                    {
-                        if (indciesFrom[i] != -1)
+                        if (from > to) // if user reverse period points
                         {
-                            XmlDocument temp = new XmlDocument();
-                            temp.LoadXml(wb.DownloadString($"http://www.nbp.pl/kursy/xml/{xmlFileNames[indciesFrom[i]]}.xml"));
-
-                            var dataNotowania = CreateDateTimeFromString(temp.GetElementsByTagName("data_notowania")[0].InnerText);
-                            // TODO: Jeśli data notowania jest równa dacie brzegowej, to nie szukamy dalej, w sensie, że nie potrzebnie przeglądamy zakładane wybory xD od razu
-                            listOfNotesFrom.Add(Tuple.Create(indciesFrom[i], dataNotowania));
+                            var t = from;
+                            from = to;
+                            to = t;
                         }
-                    }
-
-                    for (int i = 0; i < 3; ++i)
-                    {
-                        if (indciesTo[i] != -1)
+                        if (currencyCode.Length < 3 && currencyCode.Length > 3)
                         {
-                            XmlDocument temp = new XmlDocument();
-                            temp.LoadXml(wb.DownloadString($"http://www.nbp.pl/kursy/xml/{xmlFileNames[indciesTo[i]]}.xml"));
-
-                            var dataNotowania = DateTime.Parse(temp.GetElementsByTagName("data_notowania")[0].InnerText);
-                            // TODO: Jeśli data notowania jest równa dacie brzegowej, to nie szukamy dalej, w sensie, że nie potrzebnie przeglądamy zakładane wybory xD od razu
-                            listOfNotesTo.Add(Tuple.Create(indciesTo[i], dataNotowania));
+                            invalidCurrency();
+                            return;
                         }
-                    }
-
-                    var bestFitFromIndex = listOfNotesFrom.Where(elem => elem.Item2 >= from).OrderBy(elem => Math.Abs(elem.Item2.DayOfYear - from.DayOfYear)).First().Item1;
-                    var bestFitToIndex = listOfNotesTo.Where(elem => elem.Item2 <= to).OrderBy(elem => Math.Abs(elem.Item2.DayOfYear - to.DayOfYear)).First().Item1;
-
-                    List<Tuple<DateTime, double, double>> notesInRangeBuySell = new List<Tuple<DateTime, double, double>>();
-     
-                    string selectedWaluta = "";
-                   for(int i = bestFitFromIndex; i <= bestFitToIndex; ++i)
-                   {
-                        XmlDocument temp = new XmlDocument();
-                        temp.LoadXml(wb.DownloadString($"http://www.nbp.pl/kursy/xml/{xmlFileNames[i]}.xml"));
-                        XmlNodeList nodesTest2 = temp.GetElementsByTagName("kod_waluty");
-
-
-                        foreach (XmlNode item in nodesTest2)
+                        var now = DateTime.Now;
+                        if(from.Date == now.Date)
                         {
-                            if(item.InnerText == args[0])
+                            Console.WriteLine("Todays rates will be availabe tomorrow!!");
+                            return;
+                        }
+                        
+                        if(from.Date == now.AddDays(-1).Date)
+                        {
+                            if(now.Hour < 8 || (now.Hour == 8 && now.Minute < 15))
                             {
-                                var dataNotowania = CreateDateTimeFromString(temp.GetElementsByTagName("data_notowania")[0].InnerText);
-                                selectedWaluta = item.PreviousSibling.PreviousSibling.InnerText;
-                                notesInRangeBuySell.Add(Tuple.Create(dataNotowania, double.Parse(item.NextSibling.InnerText), double.Parse(item.NextSibling.NextSibling.InnerText)));
+                                Console.WriteLine("Yesterday rates will be availabe after 8:15 am");
+                                return;
                             }
                         }
+                        NBPCurrencyInformation currencyInformation = null;
+                        try
+                        {
+                            currencyInformation = new CurrencyValueNBP.NBPCurrencyInformation(currencyCode, from, to);
+                        }
+                        catch (InvalidDataException)
+                        {
+                            invalidCurrency();
+                            return;
+                        }
+                        catch (ArgumentOutOfRangeException)
+                        {
+                            invalidRange();
+                            return;
+                        }
+                        currencyInformation.DataChanged += DisplayCurrenyValues;
+                        currencyInformation.ProgressChanged += DataParsingProgressChanged;
+                        createInterface(currencyCode);
+                        currencyInformation.StartParsingDataAsync().Wait();
+                        // Lastest date display
+                        createInterface(currencyCode);
+                        DisplayCurrenyValues(null, currencyInformation);
+                        PrintAt("Naciśnij dowolny klawisz, aby zakończyć...", 0, Console.WindowHeight - 2);
+                        Console.Read();
+                        return;
                     }
-
-
-
-                    var averageBuy = notesInRangeBuySell.Average(elem => elem.Item2);
-                    var averageSell = notesInRangeBuySell.Average(elem => elem.Item3);
-
-
-                    var miniminBuy = notesInRangeBuySell.Min(elem => elem.Item2);
-                    var maximumBuy = notesInRangeBuySell.Max(elem => elem.Item2);
-                    var miniminSell = notesInRangeBuySell.Min(elem => elem.Item3);
-                    var maximumSell = notesInRangeBuySell.Max(elem => elem.Item3);
-
-                    var standardDeviationBuy = notesInRangeBuySell.Select(elem => Math.Pow(elem.Item2 - averageBuy, 2)).Sum() / notesInRangeBuySell.Count;
-                    var standardDeviationSell = notesInRangeBuySell.Select(elem => Math.Pow(elem.Item3 - averageSell, 2)).Sum() / notesInRangeBuySell.Count;
-
-                    var bigestDifference = notesInRangeBuySell.OrderBy(elem => Math.Abs(elem.Item2 - elem.Item3)).Last();
-
-
-
-                    Console.WriteLine($"Wybrana waluta to: {selectedWaluta} ({args[0]})");
-                    Console.WriteLine("----Podstawowe statystyki dla kursu kupna----");
-                    Console.WriteLine($"Kurs średni: {averageBuy}");
-                    Console.WriteLine($"Odchylenie standardowe: {standardDeviationBuy}");
-                    Console.WriteLine($"Kurs minimalny: {miniminBuy}");
-                    Console.WriteLine($"Kurs maksymalny: {maximumBuy}");
-
-                    Console.WriteLine("----Podstawowe statystyki dla kursu sprzedaży----");
-                    Console.WriteLine($"Kurs średni: {averageSell}");
-                    Console.WriteLine($"Odchylenie standardowe: {standardDeviationSell}");
-                    Console.WriteLine($"Kurs minimalny: {miniminSell}");
-                    Console.WriteLine($"Kurs maksymalny: {maximumSell}");
-
-                    Console.WriteLine($"Największa różnica kursowa wynosiła {Math.Abs(bigestDifference.Item3 - bigestDifference.Item2)} z dnia {bigestDifference.Item1.ToString("dd.MM.yy")}");
-
-                    Console.ReadLine();
                 }
+                Console.WriteLine("Bad date format! :(");
+                Console.Read();
             }
+            else
+            {
+                Console.WriteLine("Bad arguments passed :(");
+                Console.Read();
+            }
+        }
+        private static void invalidCurrency()
+        {
+            Console.WriteLine("Invalid currency code :(");
+            Console.Read();
+        }
+        private static void invalidRange()
+        {
+            Console.WriteLine("Invalid range feeded :(");
+            Console.Read();
+        }
+        private static void createInterface(string currencyCode)
+        {
+            Console.Clear();
+            Console.WriteLine($"-----Statystyki dla waluty {currencyCode}-----\n");
+            Console.WriteLine("Średnia arytmetyczna dla kursu sprzedaży: "); // 1, 42
+            Console.WriteLine("Średnia arytmetyczna dla kursu kupna: "); // 2, 39
+            Console.WriteLine();
+            Console.WriteLine("Odchylenie standardowe dla kursu sprzedaży: "); // 4, 45
+            Console.WriteLine("Odchylenie standardowe dla kursu kupna: "); // 5, 40
+            Console.WriteLine();
+            Console.WriteLine("Minimalny kurs sprzedaży: "); // 7, 27
+            Console.WriteLine("Maksymalny kurs sprzedaży: "); // 8, 28
+            Console.WriteLine();
+            Console.WriteLine("Minimalny kurs kupna: "); // 9, 22
+            Console.WriteLine("Maksymalny kurs kupna: "); // 10, 23
+            Console.WriteLine();
+            Console.WriteLine("Największa różnica kursowa wynosiła: "); // 12, 41
+            Console.WriteLine("Miała ona miejsce w dniu/dniach: "); // 14, 0
+        }
 
+        private static void PrintAt(string str, int left, int top)
+        {
+            Console.SetCursorPosition(left, top);
+            Console.Write(str);
+        }
 
+        private static void DataParsingProgressChanged(object sender, CurrencyInformationProgressEventArgs e) => PrintAt($"UWAGA!! Zbieranie danych trwa!! Postęp: {e.Progress}%     ", 0, Console.WindowHeight - 1);
 
-            // TODO: It is error
+        private static void DisplayCurrenyValues(object sender, NBPCurrencyInformation e)
+        {
+            Console.CursorVisible = false;
+            int valuesPaddingLeft = 57;
+            PrintAt($"{ e.AverageSellingRate:0.#####0} zł", valuesPaddingLeft, 2);
+            PrintAt($"{ e.AverageBuyingRate:0.#####0} zł", valuesPaddingLeft, 3);
+            PrintAt($"{e.StandardDeviationSellingRate:0.#####0} zł", valuesPaddingLeft, 5);
+            PrintAt($"{e.StandardDeviationBuyingRate:0.#####0} zł", valuesPaddingLeft, 6);
 
-            var dbg = 0;
-
-            //WebClient wc = new WebClient();
-
-
+            CurrencyData current = e.MinimimSellingRate;
+            PrintAt($"{current.SellingRate:0.#####0} zł ({current.ListingDateString})", valuesPaddingLeft, 8);
+            current = e.MaximumSellingRate;
+            PrintAt($"{current.SellingRate:0.#####0} zł ({current.ListingDateString})", valuesPaddingLeft, 9);
+            current = e.MinimimBuyingRate;
+            PrintAt($"{current.BuyingRate:0.#####0} zł ({current.ListingDateString})", valuesPaddingLeft, 11);
+            current = e.MaximumBuyingRate;
+            PrintAt($"{current.BuyingRate:0.#####0} zł ({current.ListingDateString})", valuesPaddingLeft, 12);
+            var diffrences = e.BiggestDiference;
+            PrintAt($"{diffrences.First().DifferenceBeetweenRates:0.#####0 zł}", valuesPaddingLeft, 14);
+            StringBuilder line = new StringBuilder();
+            int howManyCouldFit = Console.WindowWidth / 12; //bo data ma 12 znaków z spacją i przecinkiem
+            int begginingLine = 16;
+            for (int i = 0; i < diffrences.Length; ++i)
+            {
+                int j = 0;
+                for (; j < howManyCouldFit; ++j)
+                {
+                    int index = i + j;
+                    if (index >= diffrences.Length)
+                        break;
+                    line.Append(diffrences[i + j].ListingDateString);
+                    if (j != howManyCouldFit - 1 && (index + 1) < diffrences.Length)
+                    {
+                        line.Append(", ");
+                    }
+                }
+                i += j;
+                PrintAt(line.ToString(), 0, begginingLine++);
+                line.Clear();
+            }
+            Console.CursorVisible = true;
         }
     }
 }

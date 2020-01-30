@@ -4,17 +4,16 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{CBA50CF1-0A7F-4397-A579-10E2E6E5863C}</ProjectGuid>
-    <OutputType>Exe</OutputType>
-    <RootNamespace>NBPWaluty</RootNamespace>
-    <AssemblyName>NBPWaluty</AssemblyName>
+    <ProjectGuid>{CC13306B-5C2F-48F6-AABD-ECCA37708B19}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>CurrencyValueNBP</RootNamespace>
+    <AssemblyName>CurrencyValueNBP</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -24,7 +23,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -43,17 +41,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Program.cs" />
+    <Compile Include="CurrencyData.cs" />
+    <Compile Include="CurrencyInformationProgressEventArgs.cs" />
+    <Compile Include="NBPCurrencyInformation.cs" />
+    <Compile Include="NBPTableEnum.cs" />
+    <Compile Include="NBPXmlFile.cs" />
+    <Compile Include="NBPXmlFileNames.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\CurrencyValueNBP\CurrencyValueNBP.csproj">
-      <Project>{cc13306b-5c2f-48f6-aabd-ecca37708b19}</Project>
-      <Name>CurrencyValueNBP</Name>
-    </ProjectReference>
+    <Compile Include="NBPXmlHelper.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

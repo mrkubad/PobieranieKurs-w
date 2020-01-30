@@ -5,6 +5,10 @@ VisualStudioVersion = 16.0.29306.81
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NBPWaluty", "NBPWaluty\NBPWaluty.csproj", "{CBA50CF1-0A7F-4397-A579-10E2E6E5863C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CurrencyValueNBP", "CurrencyValueNBP\CurrencyValueNBP.csproj", "{CC13306B-5C2F-48F6-AABD-ECCA37708B19}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NBPWalutyWPF", "NBPWalutyWPF\NBPWalutyWPF.csproj", "{3C6D3685-79EC-4F00-9815-75EBE16FA022}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{CBA50CF1-0A7F-4397-A579-10E2E6E5863C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CBA50CF1-0A7F-4397-A579-10E2E6E5863C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CBA50CF1-0A7F-4397-A579-10E2E6E5863C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CC13306B-5C2F-48F6-AABD-ECCA37708B19}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC13306B-5C2F-48F6-AABD-ECCA37708B19}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CC13306B-5C2F-48F6-AABD-ECCA37708B19}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC13306B-5C2F-48F6-AABD-ECCA37708B19}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C6D3685-79EC-4F00-9815-75EBE16FA022}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C6D3685-79EC-4F00-9815-75EBE16FA022}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C6D3685-79EC-4F00-9815-75EBE16FA022}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C6D3685-79EC-4F00-9815-75EBE16FA022}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
