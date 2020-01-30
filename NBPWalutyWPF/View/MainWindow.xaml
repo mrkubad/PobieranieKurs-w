@@ -31,7 +31,10 @@
             Grid.Column="0"
             Orientation="Vertical">
             <Label Content="Waluta:" />
-            <ComboBox ItemsSource="{Binding ComboboxItems}" SelectedItem="{Binding CurrencyCode, Mode=TwoWay}" />
+            <ComboBox
+                IsEnabled="{Binding IsSelectBoxEnabled}"
+                ItemsSource="{Binding ComboboxItems}"
+                SelectedItem="{Binding CurrencyCode, Mode=TwoWay}" />
         </StackPanel>
         <StackPanel
             Grid.Row="0"
@@ -91,13 +94,6 @@
                     <Setter Property="Visibility" Value="Collapsed" />
                 </Style>
             </ListView.Resources>
-            <!--<ListView.View>
-                <GridView>
-                    <GridViewColumn Width="200" />
-                    <GridViewColumn Width="100" />
-                    <GridViewColumn Width="100" />
-                </GridView>
-            </ListView.View>-->
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <WrapPanel Orientation="Vertical">
@@ -162,35 +158,6 @@
                     </WrapPanel>
                 </DataTemplate>
             </ListView.ItemTemplate>
-
-
-            <ListView.GroupStyle>
-                <GroupStyle>
-                    <GroupStyle.ContainerStyle>
-                        <Style TargetType="{x:Type GroupItem}">
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate>
-                                        <Expander IsExpanded="True">
-                                            <Expander.Header>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock
-                                                        VerticalAlignment="Bottom"
-                                                        FontSize="22"
-                                                        FontWeight="Bold"
-                                                        Foreground="Gray"
-                                                        Text="{Binding CurrencyCode}" />
-                                                </StackPanel>
-                                            </Expander.Header>
-                                            <ItemsPresenter />
-                                        </Expander>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </GroupStyle.ContainerStyle>
-                </GroupStyle>
-            </ListView.GroupStyle>
         </ListView>
 
         <ProgressBar

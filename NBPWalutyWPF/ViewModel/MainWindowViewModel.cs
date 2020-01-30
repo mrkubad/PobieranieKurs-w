@@ -34,6 +34,14 @@ namespace NBPWalutyWPF.ViewModel
             get { return isButtonEnabled; }
             set { isButtonEnabled = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("IsButtonEnabled")); }
         }
+        private bool _isSelectBoxEnabled;
+
+        public bool IsSelectBoxEnabled
+        {
+            get { return _isSelectBoxEnabled; }
+            set { _isSelectBoxEnabled = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("IsSelectBoxEnabled")); }
+        }
+
 
         private bool isDateFromEnabled;
 
@@ -74,6 +82,7 @@ namespace NBPWalutyWPF.ViewModel
                 IsButtonEnabled = false;
                 IsDateToDisabled = false;
                 IsDateFromEnabled = false;
+                IsSelectBoxEnabled = false;
                 ProgressBarValue = 0;
                 ci = new NBPCurrencyInformation(CurrencyCode, DateFrom, DateTo);
                 ci.ProgressChanged += Ci_ProgressChanged;
@@ -84,6 +93,7 @@ namespace NBPWalutyWPF.ViewModel
                 IsButtonEnabled = true;
                 IsDateToDisabled = true;
                 IsDateFromEnabled = true;
+                IsSelectBoxEnabled = true;
             });
 
             ComboboxItems = new ObservableCollection<string> { "USD", "EUR", "CHF", "GBP" };
